@@ -318,3 +318,125 @@ body {
   margin-bottom: 0;
   max-width: 85%;
 }
+/* =========================
+   الصفحات الجديدة 8 - 12
+========================= */
+
+.final-emoji-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.final-emoji {
+  font-size: clamp(70px, 16vw, 140px);
+  filter: drop-shadow(0 10px 20px rgba(0,0,0,0.25));
+}
+
+/* =========================
+   صفحة اللعبة
+========================= */
+
+.game-page .content {
+  max-width: 1000px;
+}
+
+.game-info {
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.15);
+  padding: 12px 18px;
+  border-radius: 999px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffe7ee;
+}
+
+.game-area {
+  position: relative;
+  width: min(92vw, 900px);
+  height: min(70vh, 560px);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.08), rgba(0,0,0,0.08)),
+    rgba(255,255,255,0.05);
+  border: 2px solid rgba(255,255,255,0.12);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: inset 0 0 30px rgba(0,0,0,0.15), 0 20px 40px rgba(0,0,0,0.2);
+  touch-action: none;
+}
+
+.basket {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 58px;
+  line-height: 1;
+  z-index: 5;
+  user-select: none;
+  transition: left 0.08s linear;
+}
+
+.ball {
+  position: absolute;
+  top: -40px;
+  font-size: 34px;
+  line-height: 1;
+  user-select: none;
+  pointer-events: none;
+  filter: drop-shadow(0 8px 12px rgba(0,0,0,0.2));
+}
+
+.game-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(30, 0, 10, 0.72);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 20;
+  padding: 20px;
+}
+
+.game-overlay.show {
+  display: flex;
+}
+
+.game-over-box {
+  width: min(92%, 560px);
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 24px;
+  padding: 26px 22px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.28);
+  text-align: center;
+}
+
+.game-over-text {
+  font-size: clamp(24px, 4vw, 38px);
+  font-weight: 800;
+  line-height: 1.8;
+  margin-bottom: 20px;
+  color: #fff;
+}
+
+/* الموبايل */
+@media (max-width: 768px) {
+  .game-area {
+    height: 58vh;
+  }
+
+  .basket {
+    font-size: 50px;
+  }
+
+  .ball {
+    font-size: 30px;
+  }
+
+  .game-info {
+    font-size: 14px;
+    padding: 10px 14px;
+  }
+}
