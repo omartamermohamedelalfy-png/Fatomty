@@ -302,3 +302,18 @@ body {
     padding: 12px 28px;
   }
 }
+/* تخصيص الصفحة التانية: الكلام في آخر الصفحة */
+#page2 {
+  align-items: flex-end;
+  padding-bottom: 40px;
+}
+
+#page2 .content {
+  justify-content: flex-end;
+  gap: 16px;
+}
+
+#page2 .text-box {
+  margin-bottom: 8px;
+  max-width: 85%;
+}
