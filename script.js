@@ -1,25 +1,23 @@
-let gameStarted = false;
-let gameInterval = null;
-let animationFrame = null;
-let balls = [];
-let missedBalls = 0;
-const MAX_MISSED = 6;
+let currentPage = 1;
 
-/* التنقل بين الصفحات */
+/* =========================
+   التنقل بين الصفحات
+========================= */
 function nextPage(pageNumber) {
   const pages = document.querySelectorAll(".page");
-
-  pages.forEach((page) => {
-    page.classList.remove("active");
-  });
+  pages.forEach((page) => page.classList.remove("active"));
 
   const targetPage = document.getElementById(`page${pageNumber}`);
   if (targetPage) {
     targetPage.classList.add("active");
+    currentPage = pageNumber;
     window.scrollTo({ top: 0, behavior: "smooth" });
 
+    // لو دخل الصفحة 10 شغّل اللعبة
     if (pageNumber === 10) {
-      setTimeout(startGame, 250);
+      setTimeout(() => {
+        initGame();
+      }, 300);
     } else {
       stopGame();
     }
@@ -29,125 +27,137 @@ function nextPage(pageNumber) {
 /* =========================
    اللعبة
 ========================= */
-function startGame() {
-  if (gameStarted) return;
+let gameInterval = null;
+let moveInterval = null;
+let gameRunning = false;
+let missedCount = 0;
+const MAX_MISSED = 6;
 
+function initGame() {
   const gameArea = document.getElementById("gameArea");
   const basket = document.getElementById("basket");
   const overlay = document.getElementById("gameOverlay");
 
   if (!gameArea || !basket || !overlay) return;
 
-  gameStarted = true;
-  balls = [];
-  missedBalls = 0;
+  // لو اللعبة شغالة بالفعل، امنع إعادة تشغيلها
+  stopGame();
+
+  gameRunning = true;
+  missedCount = 0;
   overlay.classList.remove("show");
 
-  // تنظيف أي كرات قديمة
-  document.querySelectorAll(".ball").forEach((ball) => ball.remove());
+  // امسح أي كرات قديمة
+  gameArea.querySelectorAll(".ball").forEach(ball => ball.remove());
 
-  let basketX = gameArea.clientWidth / 2;
-  const basketHalf = 30;
+  // خلي السلة في النص أول ما الصفحة تفتح
+  basket.style.left = "50%";
+  basket.style.transform = "translateX(-50%)";
 
+  /* =========================
+     تحريك السلة
+  ========================= */
   function moveBasket(clientX) {
+    if (!gameRunning) return;
+
     const rect = gameArea.getBoundingClientRect();
     let x = clientX - rect.left;
-    x = Math.max(basketHalf, Math.min(gameArea.clientWidth - basketHalf, x));
-    basketX = x;
-    basket.style.left = `${basketX}px`;
+
+    const basketWidth = 60;
+    const minX = basketWidth / 2;
+    const maxX = gameArea.clientWidth - basketWidth / 2;
+
+    if (x < minX) x = minX;
+    if (x > maxX) x = maxX;
+
+    basket.style.left = `${x}px`;
+    basket.style.transform = "translateX(-50%)";
   }
 
-  // للموبايل
-  gameArea.ontouchmove = (e) => {
+  // موبايل
+  gameArea.ontouchmove = function (e) {
     e.preventDefault();
     moveBasket(e.touches[0].clientX);
   };
 
-  // للكمبيوتر
-  gameArea.onmousemove = (e) => {
+  // كمبيوتر
+  gameArea.onmousemove = function (e) {
     moveBasket(e.clientX);
   };
 
-  function createBall() {
+  /* =========================
+     إنشاء الكور
+  ========================= */
+  gameInterval = setInterval(() => {
+    if (!gameRunning) return;
+
     const ball = document.createElement("div");
     ball.className = "ball";
     ball.textContent = "🏐";
 
-    const x = Math.random() * (gameArea.clientWidth - 40);
+    const x = Math.random() * (gameArea.clientWidth - 50);
     ball.style.left = `${x}px`;
+    ball.style.top = `-40px`;
+
     gameArea.appendChild(ball);
 
-    balls.push({
-      el: ball,
-      x: x,
-      y: -40,
-      speed: 3 + Math.random() * 1.5
-    });
-  }
+    let y = -40;
+    const speed = 4 + Math.random() * 2;
 
-  function updateGame() {
-    if (!gameStarted) return;
+    const oneBall = setInterval(() => {
+      if (!gameRunning) {
+        clearInterval(oneBall);
+        if (ball.parentNode) ball.remove();
+        return;
+      }
 
-    const basketRect = basket.getBoundingClientRect();
-    const areaRect = gameArea.getBoundingClientRect();
+      y += speed;
+      ball.style.top = `${y}px`;
 
-    balls.forEach((ball, index) => {
-      ball.y += ball.speed;
-      ball.el.style.top = `${ball.y}px`;
+      const ballRect = ball.getBoundingClientRect();
+      const basketRect = basket.getBoundingClientRect();
 
-      const ballRect = ball.el.getBoundingClientRect();
-
-      // لو الكرة وصلت للسلة = نعتبرها برضه "ضاعت"
       const caught =
         ballRect.bottom >= basketRect.top &&
-        ballRect.left < basketRect.right &&
-        ballRect.right > basketRect.left;
+        ballRect.top <= basketRect.bottom &&
+        ballRect.right >= basketRect.left &&
+        ballRect.left <= basketRect.right;
 
-      // لو نزلت تحت
-      const missed = ball.y > gameArea.clientHeight - 20;
+      const fell = y > gameArea.clientHeight;
 
-      if (caught || missed) {
-        ball.el.remove();
-        balls.splice(index, 1);
-        missedBalls++;
+      // سواء اتلمت أو وقعت = تتحسب ضدها عشان تخسر في الآخر 😭
+      if (caught || fell) {
+        clearInterval(oneBall);
+        if (ball.parentNode) ball.remove();
 
-        // عشان تخسر حتميًا
-        if (missedBalls >= MAX_MISSED) {
+        missedCount++;
+
+        if (missedCount >= MAX_MISSED) {
           endGame();
         }
       }
-    });
+    }, 20);
+  }, 700);
+}
 
-    animationFrame = requestAnimationFrame(updateGame);
-  }
-
-  function endGame() {
-    stopGame();
-    overlay.classList.add("show");
-  }
-
-  gameInterval = setInterval(createBall, 700);
-  updateGame();
+function endGame() {
+  const overlay = document.getElementById("gameOverlay");
+  stopGame();
+  if (overlay) overlay.classList.add("show");
 }
 
 function stopGame() {
-  gameStarted = false;
+  gameRunning = false;
 
   if (gameInterval) {
     clearInterval(gameInterval);
     gameInterval = null;
   }
 
-  if (animationFrame) {
-    cancelAnimationFrame(animationFrame);
-    animationFrame = null;
-  }
-
-  document.querySelectorAll(".ball").forEach((ball) => ball.remove());
-
   const gameArea = document.getElementById("gameArea");
   if (gameArea) {
+    gameArea.querySelectorAll(".ball").forEach(ball => ball.remove());
     gameArea.ontouchmove = null;
     gameArea.onmousemove = null;
   }
-}
+                             }
