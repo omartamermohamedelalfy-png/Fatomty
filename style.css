@@ -302,18 +302,19 @@ body {
     padding: 12px 28px;
   }
 }
-/* تخصيص الصفحة التانية: الكلام في آخر الصفحة */
+/* الصفحة التانية: الكلام والزرار فوق */
 #page2 {
-  align-items: flex-end;
-  padding-bottom: 40px;
+  align-items: flex-start !important;
+  padding-top: 40px !important;
 }
 
 #page2 .content {
-  justify-content: flex-end;
-  gap: 16px;
+  justify-content: flex-start !important;
+  gap: 18px;
 }
 
 #page2 .text-box {
-  margin-bottom: 8px;
+  margin-top: 0;
+  margin-bottom: 0;
   max-width: 85%;
 }
